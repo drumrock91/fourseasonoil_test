@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>四季油體質檢測</title>
+    <style>
+        :root {
+            --primary-color: #5a7d7c;
+            --accent-color: #d4a373;
+            --bg-color: #f9fcfb;
+            --text-color: #333;
+        }
+
+        body {
+            font-family: "Microsoft JhengHei", "Heiti TC", sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--primary-color);
+            margin-bottom: 30px;
+        }
+
+        .instruction {
+            text-align: center;
+            margin-bottom: 25px;
+            font-size: 1.1em;
+            color: #666;
+        }
+
+        .symptom-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            background-color: #f0f4f4;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .checkbox-label:hover {
+            background-color: #e0e8e8;
+        }
+
+        .checkbox-label input {
+            margin-right: 10px;
+            width: 18px;
+            height: 18px;
+            accent-color: var(--primary-color);
+        }
+
+        .btn-container {
+            text-align: center;
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2em;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: background 0.3s;
+            box-shadow: 0 4px 10px rgba(90, 125, 124, 0.3);
+        }
+
+        button:hover {
+            background-color: #466362;
+        }
+
+        #result {
+            margin-top: 40px;
+            display: none;
+        }
+
+        .result-card {
+            background: linear-gradient(135deg, #fff 0%, #fdfbf7 100%);
+            border-left: 5px solid var(--accent-color);
+            padding: 25px;
+            margin-bottom: 20px;
+            border-radius: 0 10px 10px 0;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        .result-title {
+            color: var(--primary-color);
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .result-system {
+            background-color: var(--accent-color);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            margin-left: 10px;
+            vertical-align: middle;
+        }
+
+        .result-oil {
+            font-size: 1.2em;
+            color: #d68c45;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 600px) {
+            .container { padding: 15px; }
+            .symptom-grid { grid-template-columns: 1fr 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>四季油體質檢測</h1>
+    <div class="instruction">請勾選您目前最常出現的症狀（可複選），系統將為您推薦適合的用油。</div>
+
+    <form id="quizForm">
+        <div class="symptom-grid" id="symptomContainer">
+            </div>
+        <div class="btn-container">
+            <button type="button" onclick="calculateResult()">開始分析</button>
+        </div>
+    </form>
+
+    <div id="result">
+        </div>
+</div>
+
+<script>
+    // 資料來源：依據您提供的文件內容
+    const data = [
+        {
+            id: 'spring',
+            name: '春甘',
+            system: '排毒系統',
+            oil: '春甘四季油',
+            desc: '主要調節是幫助啟動並淨化身體的排毒通道，代謝身體累積的廢物與沉滯感，讓您輕鬆調節循環、恢復平衡更健康。',
+            symptoms: [
+                '睡眠品質差', '容易面紅', '臉部色斑', '皮膚偏黃', '視力減退',
+                '肩頸痠痛', '偏頭脹痛', '關節不靈活', '情緒不穩', '耳鳴頭暈'
+            ]
+        },
+        {
+            id: 'summer',
+            name: '夏心',
+            system: '新陳代謝系統',
+            oil: '夏心四季油',
+            desc: '專注於優化新陳代謝機能，幫助身體更有效率地轉化能量、維持活力，讓您輕鬆調節循環、恢復平衡更健康。',
+            symptoms: [
+                '容易疲憊', '胸悶煩躁', '頸部僵硬', '心律不整', '腸胃差',
+                '容易水腫', '體脂過高', '泌尿道婦科問題', '汗液不均(過多或過少)', '容易油光'
+            ]
+        },
+        {
+            id: 'autumn',
+            name: '秋菲',
+            system: '免疫系統',
+            oil: '秋菲四季油',
+            desc: '重於強健與平衡免疫系統，為身體築起一道保護防線，幫助您適應季節轉換，穩固內在狀態，從容面對外在環境的挑戰。',
+            symptoms: [
+                '不易入睡', '容易感冒', '不自主深呼吸', '抵抗力較弱', '換季容易過敏',
+                '皮膚乾燥', '排便不順', '飲食不正常', '喝水量不足', '支氣管較弱'
+            ]
+        },
+        {
+            id: 'winter',
+            name: '冬盛',
+            system: '血液循環系統',
+            oil: '冬盛四季油',
+            desc: '重點在於溫養並促進血液循環，如同為身體帶來內在的暖流，幫助調節改善因身體循環不均而導致的壓力與不適，維持全身的溫暖與通暢。',
+            symptoms: [
+                '四肢冰冷', '容易脹氣', '小腹突出', '婦科問題', '容易腰痠',
+                '肌肉鬆弛', '血循差', '喜歡肉食', '晝夜顛倒', '不容易放鬆'
+            ]
+        }
+    ];
+
+    // 初始化：將所有症狀混合並顯示在頁面上
+    function init() {
+        const container = document.getElementById('symptomContainer');
+        let allSymptoms = [];
+
+        // 收集所有症狀並標記所屬類別
+        data.forEach((category, index) => {
+            category.symptoms.forEach(symptom => {
+                allSymptoms.push({
+                    text: symptom,
+                    categoryId: index
+                });
+            });
+        });
+
+        // 隨機打亂順序 (Fisher-Yates Shuffle) - 若希望分類不那麼明顯，可以啟用下一行
+        // allSymptoms.sort(() => Math.random() - 0.5);
+
+        // 建立 HTML
+        allSymptoms.forEach((item, i) => {
+            const label = document.createElement('label');
+            label.className = 'checkbox-label';
+            label.innerHTML = `
+                <input type="checkbox" name="symptom" value="${item.categoryId}">
+                ${item.text}
+            `;
+            container.appendChild(label);
+        });
+    }
+
+    // 計算結果
+    function calculateResult() {
+        const checkboxes = document.querySelectorAll('input[name="symptom"]:checked');
+        const resultContainer = document.getElementById('result');
+        
+        if (checkboxes.length === 0) {
+            alert('請至少勾選一個症狀喔！');
+            return;
+        }
+
+        // 歸零計分
+        let scores = [0, 0, 0, 0];
+
+        // 計算分數
+        checkboxes.forEach(box => {
+            scores[parseInt(box.value)]++;
+        });
+
+        // 找出最高分
+        let maxScore = Math.max(...scores);
+        
+        // 找出所有達到最高分的類別 (處理同分狀況)
+        let winners = [];
+        scores.forEach((score, index) => {
+            if (score === maxScore && score > 0) {
+                winners.push(data[index]);
+            }
+        });
+
+        // 顯示結果
+        let html = '<h2 style="text-align:center; color:#5a7d7c;">檢測結果建議</h2>';
+        
+        winners.forEach(winner => {
+            html += `
+                <div class="result-card">
+                    <div class="result-title">
+                        ${winner.name} 
+                        <span class="result-system">需加強：${winner.system}</span>
+                    </div>
+                    <div class="result-oil">建議用油：${winner.oil}</div>
+                    <p>${winner.desc}</p>
+                </div>
+            `;
+        });
+
+        // 捲動到結果區
+        resultContainer.innerHTML = html;
+        resultContainer.style.display = 'block';
+        resultContainer.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // 啟動程式
+    init();
+
+</script>
+
+</body>
+</html>
